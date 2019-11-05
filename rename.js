@@ -19,16 +19,16 @@ const encode = str => {
 }
 
 const rename = () => {
-    exec('ls -m ' + "from", (error, stdout) => {
+    exec("ls -m ./from", (error, stdout) => {
         const fileName = stdout.replace(/\n/g,'').split(',').map(x => x.trim()).map(encode);
 
         const newFileIndex = JSON.parse(fs.readFileSync("filename.json"))["index"];
         let index = 0;
         for (name of fileName) {
-            exec("mv " + "./from/" + name + " ./to/" + newFileIndex + zeroPadding(index++) + ".jpg", (error, stdout) => {
+            exec(`mv ./from/${ name } ./to/${ newFileIndex }${ zeroPadding(index++) }.jpg`, (error, stdout) => {
                 if (error) {
                     console.log(error)
-                    return;                    
+                    return;
                 }
             });
         }
