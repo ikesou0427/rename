@@ -1,5 +1,5 @@
+const exec = require('child_process').exec;
 const fs = require('fs');
-const path = require('path');
 
 const zeroPadding = num    => {
     return ('000' + num).slice(-3);
@@ -19,25 +19,27 @@ const encode = str => {
 }
 
 const rename = () => {
-    const inportPath = path.join(__dirname, 'from');
-    const files = fs.readdirSync(inportPath,(err, files) => {
-        if(err){
-            console.log(err);
+    exec("ls -m ./from", (error, stdout) => {
+        const fileName = stdout.replace(/\n/g,'').split(',').map(x => x.trim()).map(encode);
+
+        const newFileIndex = JSON.parse(fs.readFileSync(__dirname + "/filename.json"))["index"];
+        let index = 0;
+        for (name of fileName) {
+            exec(`mv ./from/${ name } ./to/${ newFileIndex }${ zeroPadding(index++) }.jpg`, (error, stdout) => {
+                if (error) {
+                    console.log(error)
+                    return;
+                }
+            });
         }
-        return files.map(encode);
+        const saveContent = { "index": incrementString(newFileIndex) };
+        fs.writeFile(__dirname + "/filename.json", JSON.stringify(saveContent), error => {
+            if (error) {
+                console.error(error);
+                return;
+            }
+        });
     });
-
-    const exportPath = path.join(__dirname,'to');
-    const initial = JSON.parse(fs.readFileSync("filename.json"))["index"];
-    for(let idx = 0;idx < files.length;idx++){
-        const oldImaegPath = path.join(inportPath, files[idx]);
-        const newImagePath = path.join(exportPath, initial + zeroPadding(idx) + '.jpg');
-        console.log('rename: ' + oldImaegPath + ' => ' + newImagePath);
-        fs.renameSync(oldImaegPath, newImagePath);
-
-    }
-    const newInitial = { "index": incrementString(initial) };
-    fs.writeFile(__dirname + "/filename.json", JSON.stringify(newInitial), error => error ? console.log(error) : console.log('done!') );
 };
 
 rename();
