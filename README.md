@@ -10,6 +10,7 @@
 3. toを確認
 
 ### 補足
+typescriptに書き換えたときexceがwindowsコマンドしか使えなくなったのでwindowsのみ対応<br>
 next-header.jsonの値の連番でファイル名が付けられます<br>
 ファイル名はAA000からZZ999まで対応<br>
 一度実行するたびにAAならAB、BZならCAが次のファイルの名前になります<br>
