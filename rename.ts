@@ -1,26 +1,30 @@
-import {exec} from 'child_process';
-import {Header} from './header';
-import {Format} from './format';
+import { exec } from 'child_process';
+import { renameSync } from 'fs';
+import { join } from 'path';
 
+import Header from './components/header';
+import Format from './components/format';
+import ImageName from './components/image-name';
+import ImageCount from './components/image-count';
+
+// fromディレクトリのファイルを全てフォーマットに沿ったのファイル名にする
 function rename() {
-    exec("dir .\\from /b /o:n", { encoding: "utf-8" }, function (error, stdout : string) : void {
-        const format : Format = new Format();
-        const header : Header = new Header();
+    // readdirSync + sortだとソートが大変なのでdir(windows) を利用している (unixの動作未確認 多分無理)
+    exec("dir .\\from /b /o:n", { encoding: "utf-8" }, function (error, stdout: string) {
+        const format = new Format();
 
-        const file_name_list : Array<string> = stdout.split('\n').map((str : string) => str.trim()).map(format.encode).filter(Boolean);
-        const new_header : string = header.getHeader();
+        const file_name_list = format.extractImagesNameFrom(stdout);
+        const header = new Header();
 
-        console.log(file_name_list)
-        for (let sheet_num : number = 0;sheet_num < file_name_list.length;sheet_num++) {
-            exec(`move .\\from\\${ file_name_list[sheet_num] }  .\\to\\${ new_header }${ format.zeroPadding(sheet_num) }.jpg`, (error, stdout) => {
-                if (error) {
-                    console.log(error)
-                    return;
-                }
-            });
+        for (let sheet_num = 0; sheet_num < file_name_list.length; sheet_num++) {
+            const image_count = new ImageCount(sheet_num);
+            const image_name = new ImageName(header, image_count);
+            
+            renameSync(join('.', 'from', file_name_list[sheet_num]), join('.', 'to', image_name.value));
         }
 
-        header.writeHeder(new_header);
+        const next_header = header.getNext();
+        next_header.write();
     });
 };
 
